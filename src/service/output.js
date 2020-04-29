@@ -14,15 +14,15 @@ import * as snap    from 'snapshot';
 
 /**
  * Controlbar common action, include:
- * 
+ *
  * - share_xxx
  * - save, markdown, png, pdf
  * - dropbox, pocket, linnk, evernote, onenote, gdrive
- * 
- * @param {string} type, include above ↑ type 
- * @param {string} current page: title 
- * @param {string} current page: desc 
- * @param {string} current page: content 
+ *
+ * @param {string} type, include above ↑ type
+ * @param {string} current page: title
+ * @param {string} current page: desc
+ * @param {string} current page: content
  */
 function action( type, title, desc, content ) {
 
@@ -209,7 +209,7 @@ function action( type, title, desc, content ) {
                     }
                 });
                 break;
-            case "pdf":
+                case "pdf":
                 if ( storage.current.mode == "read" ) {
                     $( "sr-rd-crlbar" ).css({ "opacity": 0 });
                     setTimeout( () => {
@@ -221,8 +221,8 @@ function action( type, title, desc, content ) {
                 }
                 break;
         }
-    } else if ( [ "dropbox", "pocket", "instapaper", "linnk", "yinxiang","evernote", "onenote", "gdrive", "jianguo", "yuque", "notion", "youdao", "weizhi" ].includes( type ) ) {
-        const { dropbox, pocket, instapaper, linnk, evernote, onenote, gdrive, jianguo, yuque, notion, youdao, weizhi } = exp,
+    } else if ( [ "dropbox", "pocket", "instapaper", "linnk", "yinxiang","evernote", "onenote", "gdrive", "jianguo","wallabag", "yuque", "notion", "youdao", "weizhi" ].includes( type ) ) {
+        const { dropbox, pocket, instapaper, linnk, evernote, onenote, gdrive, jianguo, yuque, notion, youdao, weizhi,wallabag } = exp,
               id      = type == "yinxiang" ? "evernote" : type;
         storage.Statistics( "service", type );
         browser.runtime.sendMessage( msg.Add( msg.MESSAGE_ACTION.track, { eventCategory: "service", eventAction: "service", eventValue: type }) );
@@ -305,6 +305,24 @@ function action( type, title, desc, content ) {
                             exp.svcCbWrapper( result, error, jianguo.name, type, new Notify() );
                         });
                     });
+                    break;
+                case "wallabag":
+                    //token 过期, 刷新令牌
+                    if(wallabag.expired){
+                      exp.wallabag.RefreshToken((result, error)=>{
+                        if(error){
+                          exp.svcCbWrapper( result, "授权已失效, 请重新授权", wallabag.name, type, new Notify() );
+                        }else {
+                          wallabag.Save( window.location.href, title, content, ( result, error ) => {
+                            exp.svcCbWrapper( result, error, wallabag.name, type, new Notify() );
+                          });
+                        }
+                      })
+                    }else {
+                      wallabag.Save( window.location.href, title, content, ( result, error ) => {
+                        exp.svcCbWrapper( result, error, wallabag.name, type, new Notify() );
+                      });
+                    }
                     break;
                 case "yuque":
                     toMarkdown( result => {
@@ -410,7 +428,7 @@ function action( type, title, desc, content ) {
 
 /**
  * Open and Remove CORB iframe
- * 
+ *
  * @param {string} include: load & remove
  */
 function corbLoader( state, callback ) {
