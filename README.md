@@ -21,7 +21,7 @@
 <img src="https://raw.githubusercontent.com/JuchiaLu/simpread/master/wallabag1.png" width="600px">
 <img src="https://raw.githubusercontent.com/JuchiaLu/simpread/master/wallabag2.png" width="600px">
 
-私建的Wallabag服务器, 最好上 HTTPS, 不然保存时报 HTTP S和 HTTP 混用错误
+私建的 Wallabag 服务器, 最好上 HTTPS, 不然保存时报 HTTPS 和 HTTP 混用错误
 ## 目录
 
 * [下载](#马上使用)
