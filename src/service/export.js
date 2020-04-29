@@ -11,10 +11,11 @@ import * as msg   from 'message';
 import {browser}  from 'browser';
 import * as puplugin from 'puplugin';
 import * as wiz   from 'wiz';
+import {storage} from 'storage';
 
 /**
  * Create PNG
- * 
+ *
  * @param {html}     html element
  * @param {string}   name
  * @param {function} callback
@@ -39,7 +40,7 @@ function pdf() {
 
 /**
  * Create Markdown file
- * 
+ *
  * @param {string} data
  * @param {string} name
  * @param {function} 0: base64; 1: error
@@ -89,7 +90,7 @@ function epub( data, url, title, desc, callback ) {
 
 /**
  * Downlaod
- * 
+ *
  * @param {string} image base64 code
  * @param {string} name
  */
@@ -101,7 +102,7 @@ function download( data, name ) {
 
 /**
  * Downlaod
- * 
+ *
  * @param {string} origin data
  * @param {string} name
  */
@@ -118,8 +119,8 @@ function prueDownload( data, name ) {
 
 /**
  * Dis contented serice
- * 
- * @param {string} service id 
+ *
+ * @param {string} service id
  */
 function unlink( id ) {
     const content = {
@@ -142,7 +143,7 @@ function unlink( id ) {
 
 /**
  * Dropbox
- * 
+ *
  * @class
  */
 class Dropbox {
@@ -255,7 +256,7 @@ class Dropbox {
 
 /**
  * Pocket
- * 
+ *
  * @class
  */
 class Pocket {
@@ -330,7 +331,7 @@ class Pocket {
         }).done( ( result, textStatus, jqXHR ) => {
             if ( result && result.access_token ) {
                 this.access_token = result.access_token;
-                callback( result, undefined );    
+                callback( result, undefined );
             } else callback( undefined, "error" );
         }).fail( ( jqXHR, textStatus, error ) => {
             console.error( jqXHR, textStatus, error )
@@ -364,7 +365,7 @@ class Pocket {
 
 /**
  * Instapaper
- * 
+ *
  * @class
  */
 class Ins {
@@ -380,7 +381,7 @@ class Ins {
         get consumer_key() {
             return "23464e13c91c4cba86f0df8aa87ec15a";
         }
-    
+
         get consumer_secret() {
             return "b71eb22c7def4d19a2d9e7b7208d31c9";
         }
@@ -413,7 +414,7 @@ class Ins {
 
 /**
  * Linnk
- * 
+ *
  * @class
  */
 class Linnk {
@@ -533,7 +534,7 @@ class Linnk {
 
 /**
  * Evernote
- * 
+ *
  * @class
  */
 class Evernote {
@@ -664,7 +665,7 @@ class Evernote {
 
 /**
  * Onenote
- * 
+ *
  * @class
  */
 class Onenote {
@@ -788,7 +789,7 @@ class Onenote {
 
 /**
  * GDrive
- * 
+ *
  * @class
  */
 class GDrive {
@@ -814,7 +815,7 @@ class GDrive {
              mimeType: "application/vnd.google-apps.folder",
          }
      }
-     
+
      get header() {
          return {
             "Content-type" : "application/json",
@@ -926,15 +927,15 @@ class GDrive {
      */
     Add( type, callback, content ) {
         $.ajax({
-            url     : type == "folder" ? 
-                        "https://www.googleapis.com/drive/v3/files" : 
+            url     : type == "folder" ?
+                        "https://www.googleapis.com/drive/v3/files" :
                         "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
             type    : "POST",
-            headers : type == "folder" ? 
-                        this.header : 
+            headers : type == "folder" ?
+                        this.header :
                         { ...this.header, ...{ "Content-Type": `multipart/form-data; boundary="${this.boundary}"` }},
-            data    : type == "folder" ? 
-                        JSON.stringify( this.folder ) : 
+            data    : type == "folder" ?
+                        JSON.stringify( this.folder ) :
                         content
         }).done( ( result, textStatus, jqXHR ) => {
             type == "folder" && textStatus == "success" && ( this.folder_id = result.id );
@@ -950,7 +951,7 @@ class GDrive {
 
 /**
  * Jianguo
- * 
+ *
  * @class
  */
 class Jianguo {
@@ -1016,7 +1017,7 @@ class Jianguo {
 
 /**
  * WebDAV
- * 
+ *
  * @class
  */
 class WebDAV {
@@ -1057,7 +1058,7 @@ class WebDAV {
 
 /**
  * Yuque
- * 
+ *
  * @class
  */
 class Yuque {
@@ -1236,7 +1237,7 @@ class Yuque {
 
 /**
  * Notion
- * 
+ *
  * @class
  */
 class Notion {
@@ -1426,7 +1427,7 @@ class Notion {
 
 /**
  * Youdao
- * 
+ *
  * @class
  */
 class Youdao {
@@ -1525,7 +1526,7 @@ class Youdao {
 
 /**
  * Wiz
- * 
+ *
  * @class
  */
 class Wiz {
@@ -1596,7 +1597,7 @@ class Wiz {
 
 /**
  * Kindle
- * 
+ *
  * @class
  */
 class Kindle {
@@ -1650,14 +1651,114 @@ class Kindle {
 }
 
 /**
+ * Wallabag
+ *
+ * @class
+ */
+class Wallabag {
+
+  constructor() {
+    this.id = "wallabag";
+  }
+
+  get name() { return name( this.id ); }
+
+  get authorizationHeader() {
+    return "Basic " + self.btoa(storage.secret[this.id].client_id + ":" + storage.secret[this.id].client_secret)
+  }
+
+  get expired() {
+    return (storage.secret[this.id].access_token.expireDateMs != null) && (Date.now() > storage.secret[this.id].access_token.expireDateMs);
+  }
+
+  Auth(username , password , client_id, client_secret, server, callback){
+    $.ajax({
+      url     : `${server}/oauth/v2/token`,
+      type    : "POST",
+      headers : {
+        "Authorization"   : "Basic " + self.btoa(client_id + ":" + client_secret),
+        "Content-Type"    : "application/json"
+      },
+      data: JSON.stringify({
+        "grant_type" : "password",
+        "username" : username,
+        "password" : password
+      })
+    }).done( ( result, textStatus, jqXHR ) => {
+      if ( textStatus == "success" && result.access_token) {
+        callback( result );
+      } else {
+        callback( undefined, textStatus);
+      }
+    }).fail( ( jqXHR, textStatus, error ) => {
+      console.error( jqXHR, textStatus, error )
+      callback( undefined, textStatus );
+    });
+  }
+
+
+  RefreshToken(callback){
+    $.ajax({
+      url     : `${storage.secret[this.id].server}/oauth/v2/token`,
+      type    : "POST",
+      headers : {
+        "Authorization"   : this.authorizationHeader,
+        "Content-Type"    : "application/json"
+      },
+      data: JSON.stringify({
+        "grant_type" : "refresh_token",
+        "refresh_token" : storage.secret[this.id].access_token.refresh_token,
+      })
+    }).done( ( result, textStatus, jqXHR ) => {
+      if ( textStatus == "success" && result.access_token) {
+        let nowDate = new Date(Date.now());
+        storage.secret[this.id]["access_token"] = {
+          "access_token": result.access_token,
+          "refresh_token": result.refresh_token,
+          "expireDateMs": nowDate.setSeconds(nowDate.getSeconds() + result.expires_in)
+        }
+        callback(result)
+      } else {
+        callback( undefined, textStatus );
+      }
+    }).fail( ( jqXHR, textStatus, error ) => {
+      console.error( jqXHR, textStatus, error )
+      callback( undefined, textStatus );
+    });
+
+  }
+
+  Save( url, title, content, callback ) {
+    $.ajax({
+      url     : `${storage.secret[this.id].server}/api/entries.json`,
+      type    : "POST",
+      data    : JSON.stringify({url, title, content}),
+      headers : {
+        "Authorization"   : `Bearer ${storage.secret[this.id].access_token.access_token}`,
+        "Content-Type"    : "application/json"
+      },
+    }).done( ( result, textStatus, jqXHR ) => {
+      if ( textStatus == "success" && result.id) {
+        callback( result );
+      } else {
+        callback( undefined, textStatus );
+      }
+    }).fail( ( jqXHR, textStatus, error ) => {
+      console.error( jqXHR, textStatus, error )
+      callback( undefined, textStatus );
+    });
+  }
+}
+
+/**
  * Get name
- * 
+ *
  * @param  {string} service type
  * @return {string} service name
  */
 function name( type ) {
     type = type.toLowerCase();
-    if ( [ "dropbox", "pocket", "instapaper", "linnk" , "evernote", "onenote", "notion" ].includes( type ) ) {
+    if ( [ "dropbox", "pocket", "instapaper", "linnk" , "evernote", "onenote", "notion","wallabag" ].includes( type ) ) {
         return type.replace( /\S/i, $0=>$0.toUpperCase() );
     } else if ( type == "yinxiang" ) {
         return "印象笔记";
@@ -1677,7 +1778,7 @@ return type;
 
 /**
  * markdown wrapper
- * 
+ *
  * @param  {string} content
  * @param  {string} download file name
  * @param  {object} new Notify()
@@ -1694,7 +1795,7 @@ function mdWrapper( content, name, notify ) {
 
 /**
  * Markdown to HTML
- * 
+ *
  * @param {string} content
  */
 function md2HTML( content ) {
@@ -1708,7 +1809,7 @@ let noti; // notify variable
 
 /**
  * Service callback wrapper
- * 
+ *
  * @param {string} result
  * @param {string} error
  * @param {string} service name, e.g. Google 云端硬盘
@@ -1727,7 +1828,7 @@ function serviceCallback( result, error, name, type, notify ) {
 
 /**
  * Verify service wrapper
- * 
+ *
  * @param  {object} storage object
  * @param  {object} service object
  * @param  {string} service type
@@ -1740,12 +1841,12 @@ function verifyService( storage, service, type, name, notify, auto = true ) {
     const dtd = $.Deferred();
     storage.Safe( ()=> {
         if ( storage.secret[type].access_token ) {
-            Object.keys( storage.secret[type] ).forEach( item => service[item] = storage.secret[type][item] );
+            Object.keys( storage.secret[type] ).forEach( item => service[item] = storage.secret[type][item] );//?????
             type != "linnk" && ( noti = notify.Render({ content: `开始保存到 ${name}，请稍等...`, state: "loading" }));
             dtd.resolve( type );
         } else {
             auto ? notify.Render( `请先获取 ${name} 的授权，才能使用此功能！`, "授权", ()=>{
-                notify.Clone().Render( [ "linnk", "jianguo", "youdao", "weizhi" ].includes( type ) ? `${name} 无法自动授权 3 秒后请自行授权。` : "3 秒钟后将会自动重新授权，请勿关闭此页面..." );
+                notify.Clone().Render( [ "linnk", "jianguo", "wallabag","youdao", "weizhi" ].includes( type ) ? `${name} 无法自动授权 3 秒后请自行授权。` : "3 秒钟后将会自动重新授权，请勿关闭此页面..." );
                 setTimeout( ()=>browser.runtime.sendMessage( msg.Add( msg.MESSAGE_ACTION.auth, { name: type } )), 3000 );
             }) : notify.Render( `请先获取 ${name} 的授权，才能使用此功能！` );
             dtd.reject( type );
@@ -1767,7 +1868,8 @@ const dropbox  = new Dropbox(),
       youdao   = new Youdao(),
       webdav   = new WebDAV(),
       weizhi   = new Wiz(),
-      kindle   = new Kindle();
+      kindle   = new Kindle(),
+      wallabag = new Wallabag();
 
 export {
     png      as PNG,
@@ -1779,9 +1881,8 @@ export {
     md2HTML  as MD2HTML,
     unlink   as Unlink,
     name     as Name,
-    dropbox, pocket, instapaper, linnk, evernote, onenote, gdrive,yuque, jianguo, webdav, notion, youdao, weizhi,
-    kindle,
+    dropbox, pocket, instapaper, linnk, evernote, onenote, gdrive,yuque, jianguo, webdav, notion, youdao, weizhi, kindle, wallabag,
     mdWrapper       as MDWrapper,
     serviceCallback as svcCbWrapper,
     verifyService   as VerifySvcWrapper,
-} 
+}
