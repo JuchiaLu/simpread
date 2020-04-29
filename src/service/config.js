@@ -123,6 +123,11 @@ const keyboard = {
             "type" : "kindle",
             "desc" : "保存到 Kindle",
         },
+         wb: {
+            "kbd"  : "wb",
+            "type" : "wallabag",
+            "desc" : "保存到 Wallabag",
+        },
         ln: {
             "kbd"  : "ln",
             "type" : "linnk",
