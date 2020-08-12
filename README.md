@@ -18,8 +18,8 @@
 
 官方未支持导出到 Wallabag, fork 了一份修改, 使其支持（仅仅把内容导出，样式 Wallabag 不支持自定义）
 
-<img src="https://raw.githubusercontent.com/JuchiaLu/simpread/master/wallabag1.png" width="600px">
+<img src="http://47.107.243.187:9530/simpread/wallabag1.png" width="600px">
 
-<img src="https://raw.githubusercontent.com/JuchiaLu/simpread/master/wallabag2.png" width="600px">
+<img src="http://47.107.243.187:9530/simpread/wallabag2.png" width="600px">
 
 注：私建的 Wallabag 服务器, 请使用 HTTPS, 不然保存时报 HTTPS 和 HTTP 混用错误
